@@ -16,15 +16,17 @@
 
 # Setup global variables and constants
 
-global calendar_file ".calendar"
-global os_sep "/"
+set calendar_file ".calendar"
+set os_sep "/"
+
+set Now 1724122793
 
 set spaces ".........." 
-global event_date [eval string repeat $spaces 2]
-global event_name [eval string repeat $spaces 6]
+set event_date [eval string repeat $spaces 2]
+set event_name [eval string repeat $spaces 6]
 
-global Answer(msg) [eval string repeat $spaces 8]
-global dayCount 0
+set Answer [eval string repeat $spaces 8]
+set dayCount 0
 
 # ------------------------------
 
@@ -54,19 +56,24 @@ proc get_home_dir {} {
 }
 
 proc process_line { eventDate eventName } {
+
+	global dayCount
+
 	set answer [append "" $eventDate ":" $eventName]
 	#puts [format "Result: %s \n" $answer]
-	set dayCount [calc-dates ($eventDate $eventName)]
-	output-display ($dayCount $eventName)
+
+	set dayCount [calc-dates ($eventDate)]
+	output-display ($eventName)
 }
 
-proc output-display { dayCount eventName } {
+proc output-display { eventName } {
 
-	set b [string range $dayCount 1 end]
-	set c [string range $eventName 0 end-2]
-	set daycount2 [expr {abs($b)}]
-	set dayCount $b
+	global dayCount
+
+	set c [string range $eventName 1 end-2]
 	set eventName $c
+
+	set daycount2 [expr {abs($dayCount)}]
 
 	#puts "$dayCount"
 	#puts "$eventName"
@@ -75,11 +82,11 @@ proc output-display { dayCount eventName } {
 		puts [format "It was %d days ago since %s." $daycount2 $eventName]
 	} elseif { $dayCount == -1 } {
 		puts [format "Yesterday was %s." $eventName]
-	} elseif	{ $dayCount == 0 } {
+	} elseif { $dayCount == 0 } {
 		puts [format "Today is %s." $eventName]
-	} elseif	{ $dayCount == 1 } {
+	} elseif { $dayCount == 1 } {
 		puts [format "Tomorrow is %s." $eventName]
-	} elseif	{ $dayCount >= 2 } {
+	} elseif { $dayCount >= 2 } {
 		puts [format "There are %d days until %s." $dayCount $eventName]
 	} else {
 		puts [format "No Match for %s.\n" $eventName]
@@ -99,37 +106,34 @@ proc diff { num1 num2 } {
 	incr num1
 	incr num2
 
-	set ans [expr { $num2 - $num1 }]
-	incr ans
+	set ans [expr { $num1 - $num2 }]
 
 	return $ans
 }
 
-proc calc-dates { Date0 eventName } {
+proc calc-dates { Date0 } {
 
 	set fmt1 "%s"
 	set fmt2 "%D"
 	set fmt3 "%Y/%m/%d"
+
+	global Now
 
 	#puts "Received: $Date0"
 	set Tgt [string range $Date0 2 end-1]
 	#puts "Changed to: $Tgt"
 
 	set Target [clock scan $Tgt -format $fmt3]
-	set Now [clock seconds]
 	set Today [clock format $Now -format $fmt1]
 
 	#puts [format "var Now is %s" $Now]
 	#puts [format "var Today is %s" $Today]
 	#puts [format "var Target is %s" $Target]
 
-	set n1 [expr {$Today / 86400}]
-	set n2 [expr {$Target / 86400}]
-
 	set deltaDays 0
-	set numDays1 $n1
-	set numDays2 $n2
-	set deltaDays [expr { $n2 - $n1 }]
+	set numDays1 [expr {$Today / 86400}]
+	set numDays2 [expr {$Target / 86400}]
+	set deltaDays [diff $numDays2 $numDays1]
 
 	return $deltaDays
 }
@@ -138,26 +142,30 @@ proc calc-dates { Date0 eventName } {
 
 proc display_banner {} {
 
-	set fmt1 "%A, %B %d, %y at %H:%M:%S (%Z)"
-	set fmt2 "  Today's date is %s.\n"
+	set fmt "%A, %B %d, %y at %H:%M:%S (%Z)"
+	set textfmt "  Today's date is %s.\n"
 	set dashes [eval string repeat = 60]
 
-	set Now [clock seconds]
-	set Today [clock format $Now -format $fmt1]
+	global Now
+
+	set Today [clock format $Now -format $fmt]
 
 	puts $dashes
 	puts ""
-	puts [format $fmt2 $Today]
+	puts [format $textfmt $Today]
 	puts $dashes
 	puts ""
 }
 
 proc build_path_name {} {
 
+	global calendar_file
+	global os_sep
+
 	set myhome [get_home_dir]
-	set sep "/"
-	set calendar_file ".calendar"
-	set path_name $myhome$sep$calendar_file
+
+	set calendar_file2 ".calendar"
+	set path_name $myhome$os_sep$calendar_file
 
 	set fmt "Filename: %s\n"
 	puts [format $fmt $path_name]
@@ -166,6 +174,13 @@ proc build_path_name {} {
 }
 
 ##  Notes: ((getenv "HOME") or "/home/kc4zvw") sep ".calendar"))
+
+proc set_epoch_time {} {
+
+	global Now
+
+	set Now [clock seconds]
+}
 
 # Open text file for reading
 
@@ -231,6 +246,7 @@ proc search_for_comments {} {
 }
 
 proc main_routine {} {
+	set_epoch_time
 	display_banner
 	first-loop
 }

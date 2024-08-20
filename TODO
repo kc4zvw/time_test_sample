@@ -1,5 +1,10 @@
 
 This is broken but have not figured it out yet?
 
-----
+Well maybe it less broken now but I do't think it doing the timezone stuff correctly
 
+Still need to figure out file i/o and error dectection stuff
+
+
+----
+Revised: Monday, August 19, 2024 at 23:48:24 PM (EDT)
